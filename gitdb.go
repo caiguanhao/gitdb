@@ -129,6 +129,12 @@ func (db DB) Init() error {
 	return err
 }
 
+func (db DB) MustForceUpdate() {
+	if err := db.ForceUpdate(); err != nil {
+		panic(err)
+	}
+}
+
 func (db DB) ForceUpdate() error {
 	r, err := git.PlainOpen(db.Local)
 	if err != nil {
@@ -182,6 +188,12 @@ func (db *DB) NewObject(path string) *Object {
 	}
 }
 
+func (db DB) MustAdd(message ...string) {
+	if err := db.Add(message...); err != nil {
+		panic(err)
+	}
+}
+
 func (db DB) Add(files ...string) error {
 	r, err := git.PlainOpen(db.Local)
 	if err != nil {
@@ -197,6 +209,12 @@ func (db DB) Add(files ...string) error {
 		}
 	}
 	return nil
+}
+
+func (db DB) MustCommit(message ...string) {
+	if err := db.Commit(message...); err != nil {
+		panic(err)
+	}
 }
 
 func (db DB) Commit(message ...string) error {
@@ -237,6 +255,14 @@ func (db DB) Commit(message ...string) error {
 	return err
 }
 
+func (db DB) MustUnpushedCommits() []string {
+	commits, err := db.UnpushedCommits()
+	if err != nil {
+		panic(err)
+	}
+	return commits
+}
+
 func (db DB) UnpushedCommits() ([]string, error) {
 	r, err := git.PlainOpen(db.Local)
 	if err != nil {
@@ -267,6 +293,12 @@ func (db DB) UnpushedCommits() ([]string, error) {
 	return commits, nil
 }
 
+func (db DB) MustPush() {
+	if err := db.Push(); err != nil {
+		panic(err)
+	}
+}
+
 func (db DB) Push() error {
 	r, err := git.PlainOpen(db.Local)
 	if err != nil {
@@ -277,10 +309,22 @@ func (db DB) Push() error {
 	})
 }
 
+func (c Collection) MustRead(dest interface{}) {
+	if err := c.Read(dest); err != nil {
+		panic(err)
+	}
+}
+
 func (c Collection) Read(dest interface{}) error {
 	defer removeNulls(dest)
 	path := filepath.Join(c.db.Local, c.Path)
 	return readJson(path, dest)
+}
+
+func (c Collection) MustWrite(content interface{}, funcs ...interface{}) {
+	if err := c.Write(content, funcs...); err != nil {
+		panic(err)
+	}
 }
 
 func (c Collection) Write(content interface{}, funcs ...interface{}) (err error) {
@@ -301,14 +345,32 @@ func (c Collection) Write(content interface{}, funcs ...interface{}) (err error)
 	return err
 }
 
+func (o Object) MustDelete() {
+	if err := o.Delete(); err != nil {
+		panic(err)
+	}
+}
+
 func (o Object) Delete() error {
 	path := filepath.Join(o.db.Local, o.Path)
 	return os.Remove(path)
 }
 
+func (o Object) MustRead(dest interface{}) {
+	if err := o.Read(dest); err != nil {
+		panic(err)
+	}
+}
+
 func (o Object) Read(dest interface{}) error {
 	path := filepath.Join(o.db.Local, o.Path)
 	return readJson(path, dest)
+}
+
+func (o Object) MustWrite(content interface{}) {
+	if err := o.Write(content); err != nil {
+		panic(err)
+	}
 }
 
 func (o Object) Write(content interface{}) (err error) {
